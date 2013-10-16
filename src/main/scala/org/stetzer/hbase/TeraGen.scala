@@ -13,8 +13,8 @@ object TeraGen {
       System.exit(1)
     }
 
-    val totalRecords = args(1).toInt
-    val tableName = args(2)
+    val totalRecords = args(0).toInt
+    val tableName = args(1)
 
     val config = HBaseConfiguration.create()
     val table = new HTable(config, tableName)
