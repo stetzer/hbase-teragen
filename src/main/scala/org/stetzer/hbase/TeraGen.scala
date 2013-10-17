@@ -1,11 +1,10 @@
 package org.stetzer.hbase
 
-import java.util.concurrent.{TimeUnit, Executors}
+import java.util.concurrent.{ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit}
 
 import org.apache.commons.lang.{RandomStringUtils => R}
 
 import org.apache.hadoop.conf.Configuration
-
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Put, HTable}
 import org.apache.hadoop.hbase.util.Bytes.{toBytes => B}
@@ -22,13 +21,14 @@ object TeraGen {
     val tableName = args(1)
     val concurrentPuts = args(2).toInt
 
-    val exec = Executors.newFixedThreadPool(concurrentPuts)
+    val queue = new ArrayBlockingQueue[Runnable](10000)
+    val exec = new ThreadPoolExecutor(concurrentPuts, concurrentPuts, 30, TimeUnit.SECONDS, queue)
 
     val config = HBaseConfiguration.create()
 
     val startTime = System.currentTimeMillis()
     for(i <- 1 to totalRecords) {
-      exec.execute(new RunnablePut(config, tableName))
+      exec.submit(new RunnablePut(config, tableName))
     }
 
     exec.shutdown()
